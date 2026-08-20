@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英単語マスター！〜たのしくえいごをおぼえよう〜</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Canvas Confetti Library for celebration 🎉 -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- QRCode Library for offline private QR code generation 📱 -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- Background Animated Floating Shapes -->
+  <div class="bg-decorations">
+    <div class="cloud cloud-1">☁️</div>
+    <div class="cloud cloud-2">☁️</div>
+    <div class="star star-1">⭐</div>
+    <div class="star star-2">✨</div>
+    <div class="star star-3">🌟</div>
+    <div class="balloon balloon-1">🎈</div>
+    <div class="balloon balloon-2">🎈</div>
+  </div>
+
+  <div class="app-container">
+    
+    <!-- Header / Title Bar -->
+    <header class="app-header">
+      <div class="logo-box">
+        <span class="logo-icon">🐻</span>
+        <h1 class="app-title">えいごマスター！</h1>
+      </div>
+      <div class="header-stats">
+        <button class="report-btn-header" onclick="openSendReportModal('home')" title="先生に進捗をおくる">
+          📮 ほうこく
+        </button>
+        <div class="stat-badge stat-master" onclick="openMasterListModal()" title="3回正解した★単語と達成日を見る" style="cursor: pointer;">
+          <span>⭐</span> <span id="total-stars">0</span>
+        </div>
+        <button class="reset-btn" onclick="confirmResetData()" title="データをぜんぶリセット">
+          ⚙️ リセット
+        </button>
+      </div>
+    </header>
+
+    <!-- SCREEN 1: Home / Mode Select -->
+    <section id="screen-home" class="screen active">
+      <div class="welcome-card">
+        <div class="welcome-toprow">
+          <div class="mascot-group">
+            <span class="mascot-item item-1">🐰</span>
+            <span class="mascot-item item-2">🐶</span>
+            <span class="mascot-item item-3">🐱</span>
+            <span class="mascot-item item-4">🐻</span>
+            <span class="mascot-item item-5">🐼</span>
+            <span class="mascot-item item-6">🐥</span>
+            <span class="mascot-sparkle">✨</span>
+          </div>
+          <button class="howto-btn" onclick="openHowtoModal()" title="あそびかたをみる">
+            📖 あそびかた
+          </button>
+        </div>
+        <h2 class="welcome-title">どれであそぶ？</h2>
+        <p class="welcome-subtitle">すきなモードをえらんでね！</p>
+
+        <div class="mode-buttons">
+          <button class="mode-btn btn-en2jp" onclick="selectMode('en2jp')">
+            <div class="btn-text">
+              <span class="btn-main">英語 ➔ 日本語</span>
+              <span class="btn-sub">英語を聞いて意味をあてよう！</span>
+            </div>
+            <span class="btn-arrow">➔</span>
+          </button>
+
+          <button class="mode-btn btn-jp2en" onclick="selectMode('jp2en')">
+            <div class="btn-text">
+              <span class="btn-main">日本語 ➔ 英語</span>
+              <span class="btn-sub">日本語に合う英単語を選ぼう！</span>
+            </div>
+            <span class="btn-arrow">➔</span>
+          </button>
+
+          <button class="mode-btn btn-review" onclick="openReviewModeSelector()">
+            <span class="btn-icon">🌟 👑</span>
+            <div class="btn-text">
+              <span class="btn-main">復習モード</span>
+              <span class="btn-sub">3回正解した★単語だけ出題！</span>
+            </div>
+            <span class="btn-arrow">➔</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stage / Category Selection Tabs & Grid -->
+      <div class="stage-section">
+        <div class="section-header-tabs">
+          <h3 class="section-title active" id="tab-stage" onclick="switchFilterTab('stage')">🚩 ステージをえらぶ (Stage 1〜50)</h3>
+          <h3 class="section-title" id="tab-category" onclick="switchFilterTab('category')">📂 カテゴリをえらぶ</h3>
+        </div>
+
+        <!-- Stage Grid -->
+        <div id="stage-grid" class="stage-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Category Grid (Hidden by default or toggled) -->
+        <div id="category-grid" class="category-grid" style="display: none;">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <div class="kids-footer">
+        <a href="teacher.html" class="teacher-page-link" target="_blank" title="先生用管理ページを開く">
+          👨‍🏫 先生の方はこちら（先生用ページ）
+        </a>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: Quiz Screen -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-topbar">
+        <button class="back-btn" onclick="goHome()">🏠 ホーム</button>
+        <div class="progress-box">
+          <span id="question-number">もんだい 1 / 7</span>
+          <div class="progress-bar-bg">
+            <div id="progress-bar-fill" class="progress-bar-fill" style="width: 14%;"></div>
+          </div>
+        </div>
+        <div class="current-score">
+          <span>⭐</span> <span id="quiz-score">0</span>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="question-card">
+        <div class="card-header-pills">
+          <div class="category-pill" id="quiz-category">たべもの</div>
+          <div class="word-star-pill" id="word-star-pill">⭐ 0/3</div>
+        </div>
+        
+        <div class="prompt-box">
+          <span class="prompt-label" id="prompt-label">この英単語の意味は？</span>
+          <div class="question-target-container">
+            <h2 class="question-target" id="question-target">Apple</h2>
+            <div class="audio-btn-group">
+              <button class="audio-btn" id="audio-btn" onclick="playCurrentAudio(false)" title="音声をきく">
+                🔊
+              </button>
+              <button class="audio-btn slow-audio-btn" id="slow-audio-btn" onclick="playCurrentAudio(true)" title="ゆっくり音声をきく">
+                🐢
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hint-bar">
+          <button class="hint-btn" onclick="showHint()" title="ヒントをみる">
+            💡 ヒント
+          </button>
+        </div>
+
+        <p class="audio-hint">💡 スピーカーを押すと、何回でも発音がきけるよ！</p>
+
+        <!-- 3 Choices -->
+        <div class="choices-container" id="choices-container">
+          <button class="choice-btn" onclick="checkAnswer(0)">
+            <span class="choice-num">1</span>
+            <span class="choice-text">リンゴ</span>
+          </button>
+          <button class="choice-btn" onclick="checkAnswer(1)">
+            <span class="choice-num">2</span>
+            <span class="choice-text">バナナ</span>
+          </button>
+          <button class="choice-btn" onclick="checkAnswer(2)">
+            <span class="choice-num">3</span>
+            <span class="choice-text">みかん</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mascot Cheer Box -->
+      <div class="mascot-bar" id="mascot-bar">
+        <span class="mascot-mini" id="mascot-mini">🐱</span>
+        <span class="mascot-msg" id="mascot-msg">がんばってね！おうえんしてるよ！</span>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: Result Screen -->
+    <section id="screen-result" class="screen">
+      <div class="result-card">
+        <div class="result-icon-box" id="result-icon-box">🎉</div>
+        <h2 class="result-title" id="result-title">すごーい！</h2>
+        <p class="result-subtitle" id="result-subtitle">ぜんぶクリアできたね！</p>
+
+        <div class="score-display-box">
+          <div class="score-stars" id="score-stars">⭐⭐⭐</div>
+          <div class="score-detail">
+            せいかい数: <strong id="final-score">5</strong> / <span id="total-questions">5</span> ぜんもん
+          </div>
+        </div>
+
+        <div class="result-buttons">
+          <button class="action-btn btn-send-report" onclick="openSendReportModal('quiz_result')">
+            💌 せんせいにおくる
+          </button>
+          <button class="action-btn btn-retry" onclick="restartQuiz()">
+            🔄 もういちどあそぶ
+          </button>
+          <button class="action-btn btn-home" onclick="goHome()">
+            🏠 さいしょにもどる
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Review Mode Selection Modal -->
+  <div id="review-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 class="modal-title">🌟 復習モード</h3>
+      <p class="modal-desc">3回正解して★をゲットした問題が出題されるよ！</p>
+      <div class="mode-buttons">
+        <button class="mode-btn btn-en2jp" onclick="startReviewMode('review_en2jp')">
+          <div class="btn-text">
+            <span class="btn-main">英語 ➔ 日本語</span>
+          </div>
+          <span class="btn-arrow">➔</span>
+        </button>
+        <button class="mode-btn btn-jp2en" onclick="startReviewMode('review_jp2en')">
+          <div class="btn-text">
+            <span class="btn-main">日本語 ➔ 英語</span>
+          </div>
+          <span class="btn-arrow">➔</span>
+        </button>
+      </div>
+      <button class="modal-close-btn" onclick="closeReviewModal()">とじる</button>
+    </div>
+  </div>
+
+  <!-- Course Selection Modal (5 or 10 questions) -->
+  <div id="course-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 class="modal-title">🎯 もんだい数をえらんでね！</h3>
+      <p class="modal-desc">なん問チャレンジする？</p>
+      <div class="course-buttons">
+        <button class="course-btn btn-5questions" onclick="startQuizWithCourse(5)">
+          <span class="course-icon">⭐ 5</span>
+          <div class="course-text">
+            <span class="course-main">5問 コース</span>
+            <span class="course-sub">さくっとあそぶ！</span>
+          </div>
+        </button>
+        <button class="course-btn btn-10questions" onclick="startQuizWithCourse(10)">
+          <span class="course-icon">🔥 10</span>
+          <div class="course-text">
+            <span class="course-main">10問 コース</span>
+            <span class="course-sub">じっくりチャレンジ！</span>
+          </div>
+        </button>
+      </div>
+      <button class="modal-close-btn" onclick="closeCourseModal()">キャンセル</button>
+    </div>
+  </div>
+
+  <!-- Master List Modal -->
+  <div id="master-list-modal" class="modal-overlay">
+    <div class="modal-card master-list-card">
+      <h3 class="modal-title">🌟 3回正解した★単語リスト</h3>
+      <p class="modal-desc">3回正解して★をゲットした単語と達成日だよ！</p>
+      <div id="master-list-container" class="master-list-container">
+        <!-- Populated via JS -->
+      </div>
+      <button class="modal-close-btn" onclick="closeMasterListModal()">とじる</button>
+    </div>
+  </div>
+
+  <!-- How-To-Play Modal -->
+  <div id="howto-modal" class="modal-overlay">
+    <div class="modal-card howto-card">
+      <h3 class="modal-title">📖 えいごマスターのあそびかた</h3>
+      <div class="howto-steps">
+        <div class="howto-step-item">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <strong>モードと問題数をえらぼう！</strong>
+            <p>「英語➔日本語」や「日本語➔英語」を選んで、5問か10問のコースを決めてスタート！</p>
+          </div>
+        </div>
+        <div class="howto-step-item">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <strong>同じ問題を3回正解して★ゲット！</strong>
+            <p>同じ単語を3回正解すると★がもらえて、マスター単語になるよ！</p>
+          </div>
+        </div>
+        <div class="howto-step-item">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <strong>復習モードでニガテを克服！</strong>
+            <p>★をゲットした単語は「復習モード」でいつでも復習できるよ！</p>
+          </div>
+        </div>
+        <div class="howto-step-item">
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <strong>🐢 ゆっくり再生や 💡 ヒントを活用！</strong>
+            <p>発音が聞き取りにくいときは🐢ボタン、迷ったときは💡ヒントボタンを押してね！</p>
+          </div>
+        </div>
+      </div>
+      <button class="modal-close-btn" onclick="closeHowtoModal()">分かった！</button>
+    </div>
+  </div>
+
+  <!-- Send Progress Report to Teacher Modal (Online Direct Send + Privacy Safe) -->
+  <div id="send-report-modal" class="modal-overlay">
+    <div class="modal-card report-modal-card">
+      <h3 class="modal-title">📮 せんせいに ほうこくしよう！</h3>
+      <p class="modal-desc">「送信ボタン」を押すと、先生の画面に進捗が直接届くよ！✨</p>
+
+      <div class="report-form">
+        <div class="form-row-2col">
+          <div class="form-group">
+            <label for="report-student-name" class="form-label">👤 おなまえ（ニックネーム）</label>
+            <input type="text" id="report-student-name" class="form-input" placeholder="例：たろう (3年2組)" maxlength="30" oninput="updateReportPreview()">
+          </div>
+          <div class="form-group">
+            <label for="report-class-code" class="form-label">🏫 クラスコード (合言葉)</label>
+            <input type="text" id="report-class-code" class="form-input" placeholder="例：eigo1" maxlength="20" oninput="updateReportPreview()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">💬 ひとことメッセージ</label>
+          <div class="quick-messages">
+            <button type="button" class="quick-msg-chip" onclick="setQuickMessage('きょうも 楽しくがんばりました！✨')">楽しくがんばった！</button>
+            <button type="button" class="quick-msg-chip" onclick="setQuickMessage('ぜんぶ正解できたよ！👑')">ぜんもん正解！</button>
+            <button type="button" class="quick-msg-chip" onclick="setQuickMessage('あたらしい単語をおぼえたよ！🌟')">単語をおぼえた！</button>
+            <button type="button" class="quick-msg-chip" onclick="setQuickMessage('あしたも がんばります！💪')">あしたもがんばる！</button>
+          </div>
+          <input type="text" id="report-comment" class="form-input" placeholder="メッセージを書いてね" maxlength="60" oninput="updateReportPreview()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">📄 おくるメッセージのプレビュー</label>
+          <textarea id="report-preview" class="form-textarea" readonly rows="5"></textarea>
+        </div>
+
+        <!-- Main Direct Online Send Button -->
+        <button class="btn-online-send" id="btn-online-send" onclick="sendReportDirectOnline()">
+          <span class="btn-send-icon">🚀</span>
+          <span class="btn-send-text">先生の画面に直接送信する！</span>
+        </button>
+
+        <div id="online-send-feedback" class="online-send-feedback"></div>
+      </div>
+
+      <button class="modal-close-btn" onclick="closeSendReportModal()">とじる</button>
+    </div>
+  </div>
+
+  <!-- Audio elements & synthesized sound generator fallback (Cache-Busting) -->
+  <script src="words.js?v=20260820_3"></script>
+  <script src="app.js?v=20260820_3"></script>
+</body>
+</html>
